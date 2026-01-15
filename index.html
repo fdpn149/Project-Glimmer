@@ -23,7 +23,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh; /* 確保 body 佔滿視窗 */
+            overflow: hidden; /* 防止整個頁面出現捲軸 */
         }
 
         .game-container {
@@ -32,11 +33,12 @@
             gap: 20px;
             width: 95%;
             max-width: 1200px;
-            height: 85vh;
+            height: 85vh; /* 固定高度 */
             background-color: #000;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-sizing: border-box; /* 確保 padding 不會撐大容器 */
         }
 
         /* 左側：數值區 */
@@ -47,6 +49,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            overflow-y: auto; /* 如果螢幕太矮，這裡也可以捲動 */
         }
 
         .avatar {
@@ -60,6 +63,7 @@
             justify-content: center;
             font-size: 2rem;
             border: 2px solid var(--muted-color);
+            flex-shrink: 0; /* 防止頭像被壓扁 */
         }
 
         .stat-group {
@@ -88,22 +92,40 @@
             transition: width 0.3s ease, background-color 0.3s ease;
         }
 
-        /* 中間：行動與劇情 */
+        /* --- 中間：主遊戲區 (修正版) --- */
         .main-panel {
             display: flex;
             flex-direction: column;
             gap: 20px;
+            height: 100%; /* 佔滿 Grid 的高度 */
+            overflow: hidden; /* 防止內容溢出 */
         }
 
         .log-area {
-            flex-grow: 1;
+            flex: 1; /* 自動填滿剩餘空間 */
+            min-height: 0; /* 關鍵：允許 Flex 子元素縮小以產生捲軸 */
             background-color: var(--panel-color);
             border-radius: 8px;
             padding: 20px;
-            overflow-y: auto;
+            overflow-y: auto; /* 垂直捲動 */
             border-left: 4px solid var(--accent-color);
             font-size: 0.95rem;
             line-height: 1.6;
+            
+            /* 自訂捲軸樣式 (Chrome/Safari/Edge) */
+            scrollbar-width: thin;
+            scrollbar-color: #555 #2b2b2e;
+        }
+
+        .log-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .log-area::-webkit-scrollbar-track {
+            background: #2b2b2e; 
+        }
+        .log-area::-webkit-scrollbar-thumb {
+            background-color: #555; 
+            border-radius: 4px; 
         }
 
         .log-entry {
@@ -120,19 +142,24 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            height: 150px;
+            height: 150px; /* 固定下方按鈕區高度 */
+            flex-shrink: 0; /* 防止按鈕區被壓縮 */
         }
 
         button {
             background-color: #333;
             border: 1px solid #555;
             color: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
             font-size: 1rem;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         button:hover:not(:disabled) {
@@ -147,7 +174,6 @@
         }
 
         button .cost {
-            display: block;
             font-size: 0.8rem;
             color: var(--muted-color);
             margin-top: 5px;
@@ -158,7 +184,9 @@
             background-color: var(--panel-color);
             padding: 20px;
             border-radius: 8px;
-            overflow-y: auto;
+            overflow-y: auto; /* 允許右側捲動 */
+            height: 100%; /* 確保填滿高度 */
+            box-sizing: border-box;
         }
 
         .status-header {
@@ -194,19 +222,20 @@
             justify-content: center;
             font-size: 0.8rem;
             margin-left: 10px;
+            flex-shrink: 0;
         }
 
         /* Tooltip */
         .tooltip {
             visibility: hidden;
             width: 200px;
-            background-color: rgba(0,0,0,0.9);
+            background-color: rgba(0,0,0,0.95);
             color: #fff;
             text-align: left;
             border-radius: 6px;
             padding: 10px;
             position: absolute;
-            z-index: 1;
+            z-index: 10;
             bottom: 100%; 
             left: 50%;
             margin-left: -100px;
@@ -215,6 +244,7 @@
             font-size: 0.8rem;
             border: 1px solid #555;
             pointer-events: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         .has-tooltip:hover .tooltip {
@@ -322,19 +352,16 @@
             money: 5000,
             costOfLiving: 3000,
             gameOver: false,
-            // 這裡存放當前持有的狀態物件
-            // 結構: { id: 'anxiety', level: 1, duration: 3 }
             activeEffects: [] 
         };
 
-        // --- 狀態效果定義庫 (Effect Database) ---
-        // 這些效果類似 Minecraft 的藥水效果
+        // --- 狀態效果定義庫 ---
         const effectDB = {
             'stigma': {
                 name: '社會標籤',
                 type: 'debuff',
                 desc: '他人異樣的眼光，降低社交成功率。',
-                onTurn: (level) => { return { sanity: -1 * level }; } // 每回合扣理智
+                onTurn: (level) => { return { sanity: -1 * level }; }
             },
             'withdrawal': {
                 name: '戒斷反應',
@@ -364,7 +391,7 @@
                 name: '生活動力',
                 type: 'buff',
                 desc: '這幾天感覺不錯，工作效率提升。',
-                onTurn: (level) => { return { money: 500 * level }; } // 每回合額外收入
+                onTurn: (level) => { return { money: 500 * level }; }
             }
         };
 
@@ -399,7 +426,6 @@
                 const div = document.createElement('div');
                 div.className = `status-effect ${dbEntry.type} has-tooltip`;
                 
-                // 計算疊加層數的顯示
                 let stackHtml = effect.level > 1 ? `<span class="stack-count">${effect.level}</span>` : '';
                 
                 div.innerHTML = `
@@ -421,15 +447,15 @@
             entry.className = `log-entry ${type}`;
             entry.innerHTML = msg;
             logArea.appendChild(entry);
+            // 自動捲動到底部
             logArea.scrollTop = logArea.scrollHeight;
         }
 
-        // 新增或疊加狀態
         function addEffect(id, duration, levelAdd = 1) {
             const existing = gameState.activeEffects.find(e => e.id === id);
             if (existing) {
                 existing.level += levelAdd;
-                existing.duration = Math.max(existing.duration, duration); // 重置持續時間或取較長者
+                existing.duration = Math.max(existing.duration, duration);
                 log(`狀態變更：<strong>${effectDB[id].name}</strong> 疊加到了 Lv ${existing.level}`, 'system');
             } else {
                 gameState.activeEffects.push({ id: id, level: levelAdd, duration: duration });
@@ -442,27 +468,17 @@
         }
 
         function calculateTurnEffects() {
-            // 結算所有狀態帶來的被動影響
-            let report = [];
             gameState.activeEffects.forEach(effect => {
                 const dbEntry = effectDB[effect.id];
                 if (dbEntry.onTurn) {
                     const changes = dbEntry.onTurn(effect.level);
-                    if (changes.sanity) {
-                        gameState.sanity += changes.sanity;
-                        // report.push(`${dbEntry.name} 影響理智 ${changes.sanity}`);
-                    }
-                    if (changes.social) {
-                        gameState.social += changes.social;
-                    }
-                    if (changes.money) {
-                        gameState.money += changes.money;
-                    }
+                    if (changes.sanity) gameState.sanity += changes.sanity;
+                    if (changes.social) gameState.social += changes.social;
+                    if (changes.money) gameState.money += changes.money;
                 }
                 effect.duration--;
             });
 
-            // 清除過期狀態
             const expired = gameState.activeEffects.filter(e => e.duration <= 0);
             if (expired.length > 0) {
                 expired.forEach(e => log(`狀態結束：${effectDB[e.id].name} 已消退`, 'system'));
@@ -476,7 +492,7 @@
                 disableButtons();
                 return true;
             }
-            if (gameState.money < -5000) { // 允許小額負債
+            if (gameState.money < -5000) {
                 log("結局：房東把你趕了出去，討債集團找上門。為了生存，你被迫當了車手被捕。 (Bad End: Crime)", "event");
                 disableButtons();
                 return true;
@@ -495,25 +511,18 @@
             gameState.gameOver = true;
         }
 
-        // --- 玩家行動邏輯 ---
-
         function takeAction(actionType) {
             if (gameState.gameOver) return;
 
-            // 1. 執行行動
             let actionLog = "";
             let risk = Math.random();
-
-            // 檢查是否有負面標籤影響機率
             const stigmaLevel = gameState.activeEffects.find(e => e.id === 'stigma')?.level || 0;
             const suspicionLevel = gameState.activeEffects.find(e => e.id === 'suspicion')?.level || 0;
 
             if (actionType === 'work') {
-                // 基礎工作邏輯
                 let income = 4000;
                 let sanityCost = 10;
                 
-                // 狀態影響
                 if (suspicionLevel > 0) {
                     income -= 500 * suspicionLevel;
                     sanityCost += 5 * suspicionLevel;
@@ -521,31 +530,27 @@
                 }
 
                 if (risk < 0.2 + (stigmaLevel * 0.1)) {
-                    // 觸發事件：職場歧視
                     gameState.sanity -= 15;
                     addEffect('anxiety', 2, 1);
-                    addEffect('suspicion', 3, 1); // 增加疑慮層數
+                    addEffect('suspicion', 3, 1);
                     actionLog += "同事發現你的過去，開始在背後竊竊私語。你感到極度焦慮。";
                 } else {
                     gameState.money += income;
                     gameState.sanity -= sanityCost;
                     actionLog += `你努力完成了一個月的零工。收入 +$${income}。`;
-                    
-                    // 正向回饋：連續工作可能獲得動力
                     if (Math.random() > 0.7) addEffect('motivated', 2);
                 }
             } 
             else if (actionType === 'connect') {
                 if (risk < 0.3 + (stigmaLevel * 0.1)) {
-                    // 觸發事件：家庭衝突
                     gameState.sanity -= 10;
                     gameState.social -= 5;
-                    addEffect('stigma', 3, 1); // 家人強化了標籤
+                    addEffect('stigma', 3, 1);
                     actionLog += "你想回家吃飯，但家人再次提起你的『前科』，不歡而散。";
                 } else {
                     gameState.social += 15;
                     gameState.sanity += 5;
-                    addEffect('trust', 2, 1); // 建立信任
+                    addEffect('trust', 2, 1);
                     actionLog += "朋友願意聽你說話，你感覺沒那麼孤單了。";
                 }
             }
@@ -556,7 +561,6 @@
                 }
                 gameState.money -= 1000;
                 gameState.sanity += 25;
-                // 治療可以減少負面層數
                 const anxiety = gameState.activeEffects.find(e => e.id === 'anxiety');
                 if (anxiety) {
                     anxiety.level = Math.max(0, anxiety.level - 2);
@@ -569,39 +573,33 @@
             else if (actionType === 'rest') {
                 gameState.sanity += 10;
                 actionLog += "你把自己關在房間裡睡了一整天。雖然逃避了壓力，但也沒有收入。";
-                // 休息太久可能導致社會脫節
-                if (Math.random() > 0.8) addEffect('stigma', 2, 1); // 自我封閉導致自我污名
+                if (Math.random() > 0.8) addEffect('stigma', 2, 1);
             }
 
-            // 2. 扣除生存成本
             gameState.money -= gameState.costOfLiving;
             log(actionLog);
             log(`月底扣除生活費 $${gameState.costOfLiving}`, 'system');
 
-            // 3. 計算回合狀態效果
             calculateTurnEffects();
-
-            // 4. 隨機事件 (Random Event)
             triggerRandomEvent();
 
-            // 5. 推進時間與更新
             gameState.month++;
             if (!checkEndGame()) {
                 updateUI();
             } else {
-                updateUI(); // 最後更新一次顯示結局狀態
+                updateUI();
             }
         }
 
         function triggerRandomEvent() {
             const roll = Math.random();
-            if (roll > 0.7) { // 30% 機率發生隨機事件
+            if (roll > 0.7) {
                 const events = [
                     {
                         text: "【誘惑】以前的藥頭傳簡訊來：「最近有好貨，算你便宜。」",
                         effect: () => {
                             log("隨機事件：藥頭的誘惑。你的意志力正在動搖...", "event");
-                            addEffect('withdrawal', 2, 1); // 誘發戒斷/渴求
+                            addEffect('withdrawal', 2, 1);
                         }
                     },
                     {
@@ -609,7 +607,7 @@
                         effect: () => {
                             log("隨機事件：社會輿論升溫。你覺得大家都在罵你。", "event");
                             addEffect('anxiety', 3, 1);
-                            addEffect('stigma', 3, 1); // 社會標籤加重
+                            addEffect('stigma', 3, 1);
                         }
                     },
                     {
@@ -626,8 +624,6 @@
             }
         }
 
-        // 初始化
-        // 開局自帶狀態：社會標籤 Lv1
         addEffect('stigma', 12, 1);
         updateUI();
 
