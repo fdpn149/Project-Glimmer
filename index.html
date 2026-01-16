@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -48,14 +49,13 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
-        /* 左側：數值面板 (通用基礎樣式) */
+        /* 左側：數值面板 */
         .stats-panel {
             background-color: var(--panel-color);
             padding: 20px;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
-            /* Desktop 預設直向 */
             gap: 15px;
             overflow-y: auto;
         }
@@ -68,6 +68,13 @@
             border-bottom: 1px solid #444;
             padding-bottom: 15px;
             margin-bottom: 5px;
+        }
+
+        .avatar-box {
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
         }
 
         .turn-label {
@@ -272,8 +279,6 @@
             color: var(--muted-color);
         }
 
-
-
         /* 右側：狀態列表 */
         .status-panel {
             background-color: var(--panel-color);
@@ -361,9 +366,6 @@
             }
         }
 
-        /* RWD */
-        /* RWD: 移動端適配 */
-        /* RWD: 移動端適配 (App Mode) */
         /* RWD: 移動端適配 (App Mode) - 仿照圖片樣式 */
         @media (max-width: 900px) {
             body {
@@ -384,7 +386,6 @@
                 box-shadow: none;
                 padding: 10px;
                 gap: 15px;
-                /* 增加間距讓畫面平衡 */
                 overflow: hidden;
             }
 
@@ -399,7 +400,6 @@
                 padding: 12px 15px;
                 gap: 15px;
                 border: 2px solid #555;
-                /* 強調邊框，如果有需要 */
             }
 
             .stats-left {
@@ -416,7 +416,6 @@
                 font-size: 2.8rem;
                 margin: 0;
                 animation: none;
-                /* 手機版不浮動，避免干擾 */
             }
 
             .turn-label {
@@ -428,9 +427,7 @@
                 gap: 6px;
                 width: auto;
                 min-width: 160px;
-                /* 確保右側有空間 */
                 flex: 1;
-                /* 讓右側填滿剩餘空間 */
             }
 
             .stat-row {
@@ -450,9 +447,7 @@
 
             .progress-bg {
                 flex: 1;
-                /* 進度條自動填滿剩餘空間 */
                 height: 6px;
-                /* 變細 */
                 background: #333;
                 width: auto;
             }
@@ -460,7 +455,6 @@
             .money-val {
                 font-size: 1.1rem;
                 margin-left: auto;
-                /* 靠右 */
             }
 
             /* 隱藏不需要的元素 */
@@ -584,6 +578,7 @@
         }
     </style>
 </head>
+
 
 <body>
 
@@ -1159,5 +1154,6 @@
         };
     </script>
 </body>
+
 
 </html>
