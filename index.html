@@ -15,6 +15,8 @@
             --muted-color: #95a5a6;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -24,14 +26,13 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            height: 100dvh; /* 適應手機瀏覽器動態高度 */
+            height: 100dvh;
             overflow: hidden;
         }
 
-        /* --- 主容器設定 (Desktop First) --- */
         .game-container {
             display: grid;
-            grid-template-columns: 250px 1fr 280px; /* 左 中 右 */
+            grid-template-columns: 250px 1fr 280px;
             gap: 20px;
             width: 95%;
             max-width: 1200px;
@@ -40,7 +41,6 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            box-sizing: border-box;
             transition: all 0.3s ease;
         }
 
@@ -77,30 +77,10 @@
             font-weight: bold;
         }
 
-        .stat-group {
-            margin-bottom: 5px;
-            position: relative;
-        }
-
-        .stat-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 3px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: #444;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            transition: width 0.3s ease, background-color 0.3s ease;
-        }
+        .stat-group { margin-bottom: 5px; }
+        .stat-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 3px; }
+        .progress-bar { width: 100%; height: 8px; background-color: #444; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.3s ease, background-color 0.3s ease; }
 
         /* --- 中間：主遊戲區 --- */
         .main-panel {
@@ -109,7 +89,6 @@
             gap: 15px;
             height: 100%;
             overflow: hidden;
-            position: relative; /* For overlays */
         }
 
         .log-area {
@@ -125,12 +104,7 @@
             scroll-behavior: smooth;
         }
 
-        .log-entry {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #444;
-            animation: fadeIn 0.4s;
-        }
+        .log-entry { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444; animation: fadeIn 0.4s; }
         .log-entry:last-child { border-bottom: none; }
         .log-entry.event { color: var(--warning-color); border-left: 2px solid var(--warning-color); padding-left: 10px; }
         .log-entry.system { color: var(--muted-color); font-size: 0.85rem; text-align: center; border-bottom: none; margin-top: 10px; }
@@ -150,23 +124,19 @@
             padding: 12px 5px;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
             font-size: 0.95rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            touch-action: manipulation; /* 優化觸控 */
+            touch-action: manipulation;
         }
-
-        button:active { transform: scale(0.98); }
-        button:hover:not(:disabled) { background-color: #444; border-color: var(--accent-color); }
+        button:active { transform: scale(0.98); background-color: #444; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        
         button strong { display: block; margin-bottom: 4px; }
         button .cost { font-size: 0.75rem; color: var(--muted-color); opacity: 0.8; }
 
-        /* --- 右側：狀態區 --- */
+        /* --- 右側：狀態區 (修正重點) --- */
         .status-panel {
             background-color: var(--panel-color);
             padding: 15px;
@@ -187,17 +157,30 @@
 
         .status-effect {
             background-color: #222;
-            padding: 8px 12px;
+            padding: 10px 12px;
             margin-bottom: 8px;
             border-radius: 5px;
             border-left: 3px solid;
+            font-size: 0.9rem;
+            cursor: pointer; /* 提示可點擊 */
+            position: relative;
+            display: flex;
+            flex-wrap: wrap; /* 允許折行 */
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .status-effect:active { background-color: #333; }
+        .status-effect.debuff { border-color: var(--danger-color); }
+        .status-effect.buff { border-color: var(--accent-color); }
+
+        .status-info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
+            width: 100%;
         }
-        .status-effect.debuff { border-color: var(--danger-color); }
-        .status-effect.buff { border-color: var(--accent-color); }
 
         .stack-count {
             background-color: #555;
@@ -208,40 +191,43 @@
             margin-left: 8px;
         }
 
-        /* Tooltip (桌面版滑鼠懸停) */
-        .tooltip {
-            display: none; /* 手機版預設隱藏，避免擋住畫面 */
+        .info-icon {
+            font-size: 0.8rem;
+            margin-left: 5px;
+            opacity: 0.5;
         }
-        @media (hover: hover) {
-            .tooltip {
-                display: block;
-                visibility: hidden;
-                width: 200px;
-                background-color: rgba(0,0,0,0.95);
-                color: #fff;
-                border-radius: 6px;
-                padding: 10px;
-                position: absolute;
-                z-index: 100;
-                bottom: 100%; left: 50%; margin-left: -100px;
-                opacity: 0; transition: opacity 0.2s;
-                font-size: 0.8rem; border: 1px solid #555;
-                pointer-events: none;
-            }
-            .has-tooltip:hover .tooltip { visibility: visible; opacity: 1; }
+
+        /* Tooltip 修改為嵌入式展開區塊 */
+        .tooltip-box {
+            display: none; /* 預設隱藏 */
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #444;
+            color: #ddd;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            animation: expandOpen 0.3s ease-out;
+        }
+
+        .tooltip-box strong { color: var(--accent-color); display: block; margin-bottom: 3px; }
+        .tooltip-box em { display: block; margin-top: 5px; color: #888; font-size: 0.8rem; }
+
+        /* 當狀態被加上 .expanded class 時，顯示 tooltip */
+        .status-effect.expanded { background-color: #2a2a2a; }
+        .status-effect.expanded .tooltip-box { display: block; }
+        .status-effect.expanded .info-icon { transform: rotate(180deg); }
+
+        @keyframes expandOpen {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* =========================================
-           RWD: 手機直式版面設定 (關鍵修改)
-           ========================================= */
+        /* --- RWD: 手機直式版面 --- */
         @media (max-width: 768px) {
-            body {
-                align-items: flex-start; /* 手機靠上對齊 */
-                height: 100dvh;
-            }
-
+            body { align-items: flex-start; height: 100dvh; }
             .game-container {
                 display: flex;
                 flex-direction: column;
@@ -253,75 +239,34 @@
                 gap: 10px;
             }
 
-            /* 1. 上方：數值區 (壓縮成橫向條) */
+            /* 上方：數值區 */
             .stats-panel {
                 flex-direction: row;
                 flex-wrap: wrap;
                 padding: 10px;
                 gap: 10px;
-                flex-shrink: 0; /* 不縮小 */
+                flex-shrink: 0;
                 min-height: auto;
                 justify-content: space-between;
                 align-items: center;
             }
-
-            .avatar { display: none; } /* 手機版隱藏頭像以節省空間 */
-            
-            .header-info { 
-                margin: 0; 
-                font-size: 1rem;
-                width: 100%;
-                text-align: left;
-                padding-bottom: 5px;
-                border-bottom: 1px solid #444;
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .stat-group {
-                width: 48%; /* 兩個並排 */
-                margin-bottom: 0;
-            }
-            /* 讓存款單獨顯示 */
-            .stat-group:last-child {
-                width: 100%; 
-                margin-top: 5px;
-                display: flex;
-                justify-content: space-between;
-                background: #222;
-                padding: 5px 10px;
-                border-radius: 4px;
-            }
+            .avatar { display: none; }
+            .header-info { width: 100%; text-align: left; padding-bottom: 5px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; margin: 0; }
+            .stat-group { width: 48%; margin-bottom: 0; }
+            .stat-group:last-child { width: 100%; margin-top: 5px; display: flex; justify-content: space-between; background: #222; padding: 5px 10px; border-radius: 4px; }
             .stat-group:last-child .stat-label { margin: 0; width: 100%; }
-            .stat-group:last-child .tooltip { display: none; } /* 移除存款條 bar */
 
-            /* 2. 中間：遊戲區 (自適應高度) */
-            .main-panel {
-                flex-grow: 1; /* 佔滿剩餘空間 */
-                min-height: 0; /* 允許縮小產生捲軸 */
-            }
+            /* 中間：遊戲區 */
+            .main-panel { flex-grow: 1; min-height: 0; }
+            .action-area { height: auto; grid-template-columns: 1fr 1fr; }
+            button { padding: 15px 5px; }
 
-            .log-area {
-                font-size: 0.95rem; /* 字體稍微調小 */
-            }
-
-            .action-area {
-                height: auto;
-                grid-template-columns: 1fr 1fr; /* 2x2 排列 */
-            }
-            
-            button {
-                padding: 15px 5px; /* 更大的點擊區域 */
-            }
-
-            /* 3. 下方：狀態區 (限制高度) */
+            /* 下方：狀態區 */
             .status-panel {
-                max-height: 120px; /* 限制高度，內部捲動 */
+                max-height: 35%; /* 給狀態區多一點空間以便展開 */
                 flex-shrink: 0;
                 padding: 10px;
             }
-            .status-header { margin-bottom: 5px; padding-bottom: 5px; }
-            .status-effect { padding: 5px 10px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -335,7 +280,7 @@
                 <span id="mobile-mood" style="font-size:1.2rem; display:none;">😐</span>
             </div>
             
-            <div class="stat-group has-tooltip">
+            <div class="stat-group">
                 <div class="stat-label">
                     <span>⚡ 理智</span>
                     <span id="sanity-val">60</span>
@@ -343,10 +288,9 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="sanity-bar" style="width: 60%; background-color: #e23e57;"></div>
                 </div>
-                <div class="tooltip">抗壓性與自制力。</div>
             </div>
 
-            <div class="stat-group has-tooltip">
+            <div class="stat-group">
                 <div class="stat-label">
                     <span>🤝 連結</span>
                     <span id="social-val">40</span>
@@ -354,20 +298,18 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="social-bar" style="width: 40%; background-color: #4ecca3;"></div>
                 </div>
-                <div class="tooltip">社會支持度。</div>
             </div>
 
-            <div class="stat-group has-tooltip">
+            <div class="stat-group">
                 <div class="stat-label">
                     <span>💰 存款: <span id="money-val" style="color:#fce38a">$2000</span></span>
                 </div>
-                <div class="tooltip">生存基金。</div>
             </div>
         </div>
 
         <div class="main-panel">
             <div class="log-area" id="game-log">
-                <div class="log-entry system">系統：模擬開始。撐過 12 個月即勝利。</div>
+                <div class="log-entry system">系統：模擬開始。目標是存活 12 個月。</div>
                 <div class="log-entry">你剛回到租屋處。房間很亂，手機有幾通未接來電，不知道是債主還是家人。</div>
             </div>
             
@@ -392,14 +334,14 @@
         </div>
 
         <div class="status-panel">
-            <div class="status-header">當前狀態 (Status)</div>
+            <div class="status-header">當前狀態 (點擊查看詳情)</div>
             <div id="status-container">
                 </div>
         </div>
     </div>
 
     <script>
-        // --- 遊戲邏輯與原本相同，僅微調顯示 ---
+        // --- 遊戲數據結構 ---
         const gameState = {
             month: 1,
             maxMonths: 12,
@@ -419,27 +361,27 @@
             },
             'withdrawal': {
                 name: '戒斷反應', type: 'debuff',
-                desc: '極度危險的生理渴求。',
+                desc: '身體記憶在呼喚毒品。極度危險。',
                 onTurn: (lvl) => ({ sanity: -5 * lvl })
             },
             'suspicion': {
                 name: '職場疑慮', type: 'debuff',
-                desc: '老闆正在盯著你。',
+                desc: '老闆正在盯著你。工作失敗率提升。',
                 onTurn: (lvl) => ({ social: -2 * lvl })
             },
             'trust': {
                 name: '信任積累', type: 'buff',
-                desc: '重建信用中。',
+                desc: '重建信用中。社交效果提升。',
                 onTurn: (lvl) => ({ social: 1 * lvl, sanity: 1 })
             },
             'anxiety': {
                 name: '焦慮', type: 'debuff',
-                desc: '預期性恐慌。',
+                desc: '預期性焦慮，害怕被揭穿。',
                 onTurn: (lvl) => ({ sanity: -3 * lvl })
             },
             'motivated': {
                 name: '生活動力', type: 'buff',
-                desc: '工作效率提升。',
+                desc: '這幾天感覺不錯，工作效率提升。',
                 onTurn: (lvl) => ({ money: 500 * lvl })
             }
         };
@@ -455,7 +397,6 @@
             const moodIcon = gameState.sanity > 70 ? '🙂' : (gameState.sanity > 40 ? '😐' : (gameState.sanity > 20 ? '😰' : '🧟'));
             document.getElementById('avatar-display').innerText = moodIcon;
             
-            // 手機版也要更新一個小的表情符號
             const mobileMood = document.getElementById('mobile-mood');
             if(window.innerWidth <= 768) {
                 mobileMood.style.display = 'inline';
@@ -472,13 +413,28 @@
             gameState.activeEffects.forEach(effect => {
                 const dbEntry = effectDB[effect.id];
                 const div = document.createElement('div');
-                div.className = `status-effect ${dbEntry.type} has-tooltip`;
+                div.className = `status-effect ${dbEntry.type}`;
+                // 點擊事件：切換 class 'expanded'
+                div.onclick = function() {
+                    // 收起其他已展開的
+                    document.querySelectorAll('.status-effect.expanded').forEach(el => {
+                        if(el !== this) el.classList.remove('expanded');
+                    });
+                    this.classList.toggle('expanded');
+                };
                 
                 let stackHtml = effect.level > 1 ? `<span class="stack-count">${effect.level}</span>` : '';
                 
                 div.innerHTML = `
-                    <span>${dbEntry.name} <small>(${effect.duration}月)</small></span>
-                    ${stackHtml}
+                    <div class="status-info-row">
+                        <span>${dbEntry.name} <small>(${effect.duration}月)</small>${stackHtml}</span>
+                        <span class="info-icon">ℹ️</span>
+                    </div>
+                    <div class="tooltip-box">
+                        <strong>${dbEntry.name} (Lv ${effect.level})</strong>
+                        ${dbEntry.desc}<br>
+                        <em>持續剩餘: ${effect.duration} 回合</em>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -559,7 +515,6 @@
             const stigmaLevel = gameState.activeEffects.find(e => e.id === 'stigma')?.level || 0;
             const suspicionLevel = gameState.activeEffects.find(e => e.id === 'suspicion')?.level || 0;
 
-            // 簡單的邏輯分支 (與前版相同)
             if (actionType === 'work') {
                 let income = 4000;
                 let sanityCost = 10;
